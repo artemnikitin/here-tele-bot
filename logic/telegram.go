@@ -42,27 +42,27 @@ type TelegramMessenger struct {
 
 // SendLocationAccepted answer that location was accepted
 func (tm *TelegramMessenger) SendLocationAccepted(ID int64) {
-	genericSend(tm, ID, LocationAccepted)
+	genericSend(tm, ID, locationAccepted)
 }
 
 // SendRequestForLocation sends request for location
 func (tm *TelegramMessenger) SendRequestForLocation(ID int64) {
-	genericSend(tm, ID, AskForLocation)
+	genericSend(tm, ID, askForLocation)
 }
 
 // SendUnknown sends unknown message
 func (tm *TelegramMessenger) SendUnknown(ID int64) {
-	genericSend(tm, ID, UnknownMessage)
+	genericSend(tm, ID, unknownMessage)
 }
 
 // SendWelcome sends welcome message
 func (tm *TelegramMessenger) SendWelcome(ID int64, name string) {
-	genericSend(tm, ID, fmt.Sprintf(WelcomeMessage, name))
+	genericSend(tm, ID, fmt.Sprintf(welcomeMessage, name))
 }
 
 // SendError sends error message to user
 func (tm *TelegramMessenger) SendError(ID int64) {
-	genericSend(tm, ID, ErrorHappened)
+	genericSend(tm, ID, errorHappened)
 }
 
 // GetPlacesWithGeocoding return list of places with geocoding for finding location
@@ -74,20 +74,43 @@ func (tm *TelegramMessenger) GetPlacesWithGeocoding(q, loc string) (*BotResult, 
 	if err != nil {
 		return &BotResult{}, errors.New(err.Error())
 	}
+	var radius int
+	switch res.Response.View[0].Result[0].MatchLevel {
+	case "city":
+		radius = 7000
+	case "district":
+		radius = 3000
+	default:
+		radius = 1500
+	}
 	lat := res.Response.View[0].Result[0].Location.DisplayPosition.Latitude
 	lon := res.Response.View[0].Result[0].Location.DisplayPosition.Longitude
-	return tm.GetPlaces(q, LocationToString(lat, lon))
+	return getPlacesWithRadius(tm, q, LocationToString(lat, lon), radius)
 }
 
 // GetPlaces return list of places by query when location is known
 func (tm *TelegramMessenger) GetPlaces(q, loc string) (*BotResult, error) {
+	return getPlacesWithRadius(tm, q, loc, 1500)
+}
+
+// SendResult send message to user with response from HERE API
+func (tm *TelegramMessenger) SendResult(ID int64, results *BotResult) {
+	genericSend(tm, ID, textForResponse(results))
+}
+
+// SendInlineResult send message to user with response from HERE API
+func (tm *TelegramMessenger) SendInlineResult(ID string, results *BotResult) {
+	inlineSend(tm, ID, results)
+}
+
+func getPlacesWithRadius(tm *TelegramMessenger, q, loc string, radius int) (*BotResult, error) {
 	var wg sync.WaitGroup
 	res := &BotResult{
 		Location: loc,
 	}
 	places, err := tm.HereAPI.GetPlaces(map[string]string{
 		"q":           q,
-		"in":          loc + ";r=1500",
+		"in":          loc + ";r=" + strconv.Itoa(radius),
 		"refinements": "true",
 		"tf":          "plain",
 	})
@@ -134,16 +157,6 @@ func (tm *TelegramMessenger) GetPlaces(q, loc string) (*BotResult, error) {
 		log.Println(string(bytes))
 	}
 	return res, nil
-}
-
-// SendResult send message to user with response from HERE API
-func (tm *TelegramMessenger) SendResult(ID int64, results *BotResult) {
-	genericSend(tm, ID, textForResponse(results))
-}
-
-// SendInlineResult send message to user with response from HERE API
-func (tm *TelegramMessenger) SendInlineResult(ID string, results *BotResult) {
-	inlineSend(tm, ID, results)
 }
 
 func inlineSend(tm *TelegramMessenger, ID string, results *BotResult) {
@@ -221,7 +234,7 @@ func createMessage(bm *telegram.BaseMessage, text string) telegram.MessageCfg {
 
 func textForResponse(results *BotResult) string {
 	if results.Places == nil || len(results.Places) == 0 {
-		return NothingFound
+		return nothingFound
 	}
 	var buf bytes.Buffer
 	for _, v := range results.Places {
