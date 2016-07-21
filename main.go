@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/artemnikitin/here-telegram-bot/hlp"
-	"github.com/artemnikitin/here-telegram-bot/logic"
+	"github.com/artemnikitin/here-tele-bot/hlp"
+	"github.com/artemnikitin/here-tele-bot/logic"
 	"github.com/bot-api/telegram"
 	c "github.com/patrickmn/go-cache"
 	"golang.org/x/net/context"

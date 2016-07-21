@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-
 	"fmt"
 
-	"github.com/artemnikitin/here-telegram-bot/hlp"
+	"github.com/artemnikitin/here-tele-bot/hlp"
 	"github.com/bot-api/telegram"
 	"golang.org/x/net/context"
 )
@@ -43,27 +42,27 @@ type TelegramMessenger struct {
 
 // SendLocationAccepted answer that location was accepted
 func (tm *TelegramMessenger) SendLocationAccepted(ID int64) {
-	genericSend(tm, ID, locationAccepted)
+	genericSend(tm, ID, LocationAccepted)
 }
 
 // SendRequestForLocation sends request for location
 func (tm *TelegramMessenger) SendRequestForLocation(ID int64) {
-	genericSend(tm, ID, askForLocation)
+	genericSend(tm, ID, AskForLocation)
 }
 
 // SendUnknown sends unknown message
 func (tm *TelegramMessenger) SendUnknown(ID int64) {
-	genericSend(tm, ID, unknownMessage)
+	genericSend(tm, ID, UnknownMessage)
 }
 
 // SendWelcome sends welcome message
 func (tm *TelegramMessenger) SendWelcome(ID int64, name string) {
-	genericSend(tm, ID, fmt.Sprintf(welcomeMessage, name))
+	genericSend(tm, ID, fmt.Sprintf(WelcomeMessage, name))
 }
 
 // SendError sends error message to user
 func (tm *TelegramMessenger) SendError(ID int64) {
-	genericSend(tm, ID, errorHappened)
+	genericSend(tm, ID, ErrorHappened)
 }
 
 // GetPlacesWithGeocoding return list of places with geocoding for finding location
@@ -222,7 +221,7 @@ func createMessage(bm *telegram.BaseMessage, text string) telegram.MessageCfg {
 
 func textForResponse(results *BotResult) string {
 	if results.Places == nil || len(results.Places) == 0 {
-		return nothingFound
+		return NothingFound
 	}
 	var buf bytes.Buffer
 	for _, v := range results.Places {
