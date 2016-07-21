@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"sync"
-	"fmt"
 
 	"github.com/artemnikitin/here-tele-bot/hlp"
 	"github.com/bot-api/telegram"
