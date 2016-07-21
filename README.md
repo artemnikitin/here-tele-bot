@@ -1,2 +1,2 @@
 # here-tele-bot
-Bot for telegram using HERE Location Platform
+Bot for Telegram messenger using HERE Location Platform
