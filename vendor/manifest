@@ -1,0 +1,24 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/bot-api/telegram",
+			"repository": "https://github.com/bot-api/telegram",
+			"revision": "19be84e8f55c73a859c987084b8dd383267c3147",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/patrickmn/go-cache",
+			"repository": "https://github.com/patrickmn/go-cache",
+			"revision": "1881a9bccb818787f68c52bfba648c6cf34c34fa",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "154d9f9ea81208afed560f4cf27b4860c8ed1904",
+			"branch": "master",
+			"path": "/context"
+		}
+	]
+}
