@@ -60,29 +60,7 @@ func main() {
 
 	for update := range updatesCh {
 		if update.InlineQuery != nil {
-			query := update.InlineQuery
-			if strings.Contains(query.Query, " in ") {
-				q, loc := logic.SplitQueryAndLocation(query.Query)
-				places, err := tm.GetPlacesWithGeocoding(q, loc)
-				if err != nil {
-					tm.SendError(update.From().ID)
-					continue
-				}
-				tm.SendInlineResult(update.InlineQuery.ID, places)
-				continue
-			} else {
-				if query.Location == nil {
-					continue
-				}
-				loc := logic.LocationToString(query.Location.Latitude, query.Location.Longitude)
-				places, err := tm.GetPlaces(query.Query, loc)
-				if err != nil {
-					tm.SendError(update.From().ID)
-					continue
-				}
-				tm.SendInlineResult(update.InlineQuery.ID, places)
-				continue
-			}
+			processInlineQuery(tm, update)
 		}
 		if update.HasMessage() {
 			if isChoiceFromInlineResult(update) {
@@ -99,41 +77,7 @@ func main() {
 				continue
 			}
 			if update.Message.Text != "" || update.Message.Location != nil {
-				if update.Message.Location != nil {
-					lat := update.Message.Location.Latitude
-					lon := update.Message.Location.Longitude
-					loc := logic.LocationToString(lat, lon)
-					cache.Set(update.From().Username, loc, c.DefaultExpiration)
-					tm.SendLocationAccepted(update.Chat().ID)
-					continue
-				}
-				if strings.Contains(update.Message.Text, " in ") {
-					q, loc := logic.SplitQueryAndLocation(update.Message.Text)
-					places, err := tm.GetPlacesWithGeocoding(q, loc)
-					if err != nil {
-						tm.SendError(update.Chat().ID)
-						continue
-					}
-					cache.Set(update.From().Username, places.Location, c.DefaultExpiration)
-					tm.SendResult(update.Chat().ID, places)
-				} else {
-					coord, ok := cache.Get(update.From().Username)
-					if ok {
-						v, ok := coord.(string)
-						if ok {
-							places, err := tm.GetPlaces(update.Message.Text, v)
-							if err != nil {
-								tm.SendError(update.Chat().ID)
-								continue
-							}
-							tm.SendResult(update.Chat().ID, places)
-						} else {
-							tm.SendError(update.Chat().ID)
-						}
-					} else {
-						tm.SendRequestForLocation(update.Chat().ID)
-					}
-				}
+				processNormalQuery(cache, tm, update)
 			}
 		} else {
 			tm.SendUnknown(update.Chat().ID)
@@ -141,6 +85,68 @@ func main() {
 
 	}
 
+}
+
+func processInlineQuery(tm *logic.TelegramMessenger, update telegram.Update) {
+	query := update.InlineQuery
+	if strings.Contains(query.Query, " in ") {
+		q, loc := logic.SplitQueryAndLocation(query.Query)
+		places, err := tm.GetPlacesWithGeocoding(q, loc)
+		if err != nil {
+			tm.SendError(update.From().ID)
+			return
+		}
+		tm.SendInlineResult(update.InlineQuery.ID, places)
+	} else {
+		if query.Location == nil {
+			return
+		}
+		loc := logic.LocationToString(query.Location.Latitude, query.Location.Longitude)
+		places, err := tm.GetPlaces(query.Query, loc)
+		if err != nil {
+			tm.SendError(update.From().ID)
+			return
+		}
+		tm.SendInlineResult(update.InlineQuery.ID, places)
+	}
+}
+
+func processNormalQuery(cache *c.Cache, tm *logic.TelegramMessenger, update telegram.Update) {
+	if update.Message.Location != nil {
+		lat := update.Message.Location.Latitude
+		lon := update.Message.Location.Longitude
+		loc := logic.LocationToString(lat, lon)
+		cache.Set(update.From().Username, loc, c.DefaultExpiration)
+		tm.SendLocationAccepted(update.Chat().ID)
+		return
+	}
+	if strings.Contains(update.Message.Text, " in ") {
+		q, loc := logic.SplitQueryAndLocation(update.Message.Text)
+		places, err := tm.GetPlacesWithGeocoding(q, loc)
+		if err != nil {
+			tm.SendError(update.Chat().ID)
+			return
+		}
+		cache.Set(update.From().Username, places.Location, c.DefaultExpiration)
+		tm.SendResult(update.Chat().ID, places)
+	} else {
+		coord, ok := cache.Get(update.From().Username)
+		if ok {
+			v, ok := coord.(string)
+			if ok {
+				places, err := tm.GetPlaces(update.Message.Text, v)
+				if err != nil {
+					tm.SendError(update.Chat().ID)
+					return
+				}
+				tm.SendResult(update.Chat().ID, places)
+			} else {
+				tm.SendError(update.Chat().ID)
+			}
+		} else {
+			tm.SendRequestForLocation(update.Chat().ID)
+		}
+	}
 }
 
 func isChoiceFromInlineResult(msg telegram.Update) bool {
