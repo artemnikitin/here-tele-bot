@@ -61,6 +61,7 @@ func main() {
 	for update := range updatesCh {
 		if update.InlineQuery != nil {
 			processInlineQuery(tm, update)
+			continue
 		}
 		if update.HasMessage() {
 			if isChoiceFromInlineResult(update) {
@@ -78,6 +79,7 @@ func main() {
 			}
 			if update.Message.Text != "" || update.Message.Location != nil {
 				processNormalQuery(cache, tm, update)
+				continue
 			}
 		} else {
 			tm.SendUnknown(update.Chat().ID)
