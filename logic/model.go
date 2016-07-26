@@ -11,5 +11,6 @@ type BotPlace struct {
 	Title        string
 	Distance     int
 	OpeningHours string
+	URL          string
 	HereURL      string
 }

@@ -136,6 +136,9 @@ func getPlacesWithRadius(tm *TelegramMessenger, q, loc string, radius int) (*Bot
 					} else {
 						place.OpeningHours = resp.Extended.OpeningHours.Text
 					}
+					if len(resp.Contacts.Website) > 0 {
+						place.URL = resp.Contacts.Website[0].Value
+					}
 					ch <- place
 				}
 			}
@@ -196,6 +199,13 @@ func transformResults(results *BotResult) []telegram.InlineQueryResult {
 		count := 1
 		for _, v := range results.Places {
 			var buf bytes.Buffer
+			buf.WriteString(v.Title)
+			if v.URL != "" {
+				buf.WriteString(" (")
+				buf.WriteString(v.URL)
+				buf.WriteString(")")
+			}
+			buf.WriteString("\n")
 			buf.WriteString("Distance: ")
 			buf.WriteString(strconv.Itoa(v.Distance))
 			buf.WriteString(" m.")
@@ -241,10 +251,15 @@ func textForResponse(results *BotResult) string {
 		buf.WriteString("*")
 		buf.WriteString(v.Title)
 		buf.WriteString("*")
+		if v.URL != "" {
+			buf.WriteString(" (")
+			buf.WriteString(v.URL)
+			buf.WriteString(")")
+		}
 		buf.WriteString("\n")
 		buf.WriteString("Distance: ")
 		buf.WriteString(strconv.Itoa(v.Distance))
-		buf.WriteString(" m.")
+		buf.WriteString(" m. ")
 		buf.WriteString("\n")
 		if v.OpeningHours != "" {
 			buf.WriteString(strings.Replace(v.OpeningHours, "<br/>", " ", -1))
