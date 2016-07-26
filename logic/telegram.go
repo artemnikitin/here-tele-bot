@@ -139,6 +139,9 @@ func getPlacesWithRadius(tm *TelegramMessenger, q, loc string, radius int) (*Bot
 					if len(resp.Contacts.Website) > 0 {
 						place.URL = resp.Contacts.Website[0].Value
 					}
+					if resp.Icon != "" {
+						place.IconURL = resp.Icon
+					}
 					ch <- place
 				}
 			}
@@ -215,7 +218,20 @@ func transformResults(results *BotResult) []telegram.InlineQueryResult {
 				buf.WriteString("\n")
 			}
 			buf.WriteString(v.HereURL)
-			res = append(res, telegram.NewInlineQueryResultArticle(strconv.Itoa(count), v.Title, buf.String()))
+			item := telegram.NewInlineQueryResultArticle(strconv.Itoa(count), v.Title, buf.String())
+			if v.URL != "" {
+				item.URL = v.URL
+			}
+			buf.Reset()
+			buf.WriteString("Distance: ")
+			buf.WriteString(strconv.Itoa(v.Distance))
+			buf.WriteString(" m.")
+			item.Description = buf.String()
+			item.HideURL = false
+			if v.IconURL != "" {
+				item.ThumbURL = v.IconURL
+			}
+			res = append(res, item)
 			count++
 		}
 	}
