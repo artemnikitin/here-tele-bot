@@ -1,47 +1,28 @@
-package main
+package im
 
 import (
-	"flag"
-	"fmt"
 	"log"
-	"os"
 	"strings"
-	"time"
 
+	"github.com/artemnikitin/here-tele-bot/common"
 	"github.com/artemnikitin/here-tele-bot/hlp"
-	"github.com/artemnikitin/here-tele-bot/logic"
 	"github.com/bot-api/telegram"
-	c "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 	"golang.org/x/net/context"
 )
 
-var (
-	debug = flag.Bool("debug", false, "Enable debug output")
-
-	botKey       = os.Getenv("BOT_KEY")
-	hereAppCode  = os.Getenv("BOT_HERE_CODE")
-	hereAppToken = os.Getenv("BOT_HERE_TOKEN")
-)
-
-func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	flag.Parse()
-	if botKey == "" || hereAppToken == "" || hereAppCode == "" {
-		fmt.Println("Set correct credentials")
-		os.Exit(1)
-	}
-	api := telegram.New(botKey)
-	api.Debug(*debug)
-	cache := c.New(45*time.Minute, 5*time.Minute)
+func RunTelegram(config *Config) {
+	api := telegram.New(config.TelegramBotKey)
+	api.Debug(config.Debug)
 	ctx, cancel := context.WithCancel(context.Background())
-	tm := &logic.TelegramMessenger{
+	tm := &TelegramMessenger{
 		TelegramAPI: api,
 		HereAPI: &hlp.HereApiConfig{
-			AppID:    hereAppCode,
-			AppToken: hereAppToken,
+			AppID:    config.HereAppCode,
+			AppToken: config.HereAppToken,
 		},
 		Ctx:   ctx,
-		Debug: *debug,
+		Debug: config.Debug,
 	}
 	defer cancel()
 
@@ -78,7 +59,7 @@ func main() {
 				continue
 			}
 			if update.Message.Text != "" || update.Message.Location != nil {
-				processNormalQuery(cache, tm, update)
+				processNormalQuery(config.Cache, tm, update)
 				continue
 			}
 		} else {
@@ -86,14 +67,13 @@ func main() {
 		}
 
 	}
-
 }
 
-func processInlineQuery(tm *logic.TelegramMessenger, update telegram.Update) {
+func processInlineQuery(tm *TelegramMessenger, update telegram.Update) {
 	query := update.InlineQuery
 	if strings.Contains(query.Query, " in ") {
-		q, loc := logic.SplitQueryAndLocation(query.Query)
-		places, err := tm.GetPlacesWithGeocoding(q, loc)
+		q, loc := common.SplitQueryAndLocation(query.Query)
+		places, err := common.GetPlacesWithGeocoding(tm.HereAPI, q, loc)
 		if err != nil {
 			tm.SendError(update.From().ID)
 			return
@@ -103,7 +83,7 @@ func processInlineQuery(tm *logic.TelegramMessenger, update telegram.Update) {
 		if query.Location == nil {
 			return
 		}
-		loc := logic.LocationToString(query.Location.Latitude, query.Location.Longitude)
+		loc := common.LocationToString(query.Location.Latitude, query.Location.Longitude)
 		places, err := tm.GetPlaces(query.Query, loc)
 		if err != nil {
 			tm.SendError(update.From().ID)
@@ -113,26 +93,26 @@ func processInlineQuery(tm *logic.TelegramMessenger, update telegram.Update) {
 	}
 }
 
-func processNormalQuery(cache *c.Cache, tm *logic.TelegramMessenger, update telegram.Update) {
+func processNormalQuery(c *cache.Cache, tm *TelegramMessenger, update telegram.Update) {
 	if update.Message.Location != nil {
 		lat := update.Message.Location.Latitude
 		lon := update.Message.Location.Longitude
-		loc := logic.LocationToString(lat, lon)
-		cache.Set(update.From().Username, loc, c.DefaultExpiration)
+		loc := common.LocationToString(lat, lon)
+		c.Set(update.From().Username, loc, cache.DefaultExpiration)
 		tm.SendLocationAccepted(update.Chat().ID)
 		return
 	}
 	if strings.Contains(update.Message.Text, " in ") {
-		q, loc := logic.SplitQueryAndLocation(update.Message.Text)
-		places, err := tm.GetPlacesWithGeocoding(q, loc)
+		q, loc := common.SplitQueryAndLocation(update.Message.Text)
+		places, err := common.GetPlacesWithGeocoding(tm.HereAPI, q, loc)
 		if err != nil {
 			tm.SendError(update.Chat().ID)
 			return
 		}
-		cache.Set(update.From().Username, places.Location, c.DefaultExpiration)
+		c.Set(update.From().Username, places.Location, cache.DefaultExpiration)
 		tm.SendResult(update.Chat().ID, places)
 	} else {
-		coord, ok := cache.Get(update.From().Username)
+		coord, ok := c.Get(update.From().Username)
 		if ok {
 			v, ok := coord.(string)
 			if ok {

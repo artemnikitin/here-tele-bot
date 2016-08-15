@@ -8,6 +8,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/nlopes/slack",
+			"repository": "https://github.com/nlopes/slack",
+			"revision": "4feee83bb2b31d790977ce727a028c6a542c72c7",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/patrickmn/go-cache",
 			"repository": "https://github.com/patrickmn/go-cache",
 			"revision": "1881a9bccb818787f68c52bfba648c6cf34c34fa",

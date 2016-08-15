@@ -1,4 +1,6 @@
-package logic
+package common
+
+import "github.com/artemnikitin/here-tele-bot/hlp"
 
 // BotResult represents response from HERE API
 type BotResult struct {
@@ -14,4 +16,10 @@ type BotPlace struct {
 	URL          string
 	HereURL      string
 	IconURL      string
+}
+
+// BotInterface
+type BotInterface interface {
+	getHLPClient() *hlp.HereApiConfig
+	isDebug() bool
 }
