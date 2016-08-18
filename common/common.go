@@ -7,6 +7,9 @@ import (
 	"strings"
 	"sync"
 
+	"encoding/json"
+	"log"
+
 	"github.com/artemnikitin/here-tele-bot/hlp"
 )
 
@@ -21,6 +24,10 @@ func GetPlacesWithGeocoding(api *hlp.HereApiConfig, q, loc string) (*BotResult, 
 	})
 	if err != nil {
 		return &BotResult{}, errors.New(err.Error())
+	}
+	if api.Debug {
+		bytes, _ := json.Marshal(res)
+		log.Println("Geocoding result:\n", string(bytes))
 	}
 	var radius int
 	var lat, lon float64
@@ -95,10 +102,10 @@ func GetPlacesWithRadius(api *hlp.HereApiConfig, q, loc string, radius int) (*Bo
 	for i := range ch {
 		res.Places = append(res.Places, i)
 	}
-	/*if api.isDebug() {
+	if api.Debug {
 		bytes, _ := json.Marshal(res)
-		log.Println(string(bytes))
-	}*/
+		log.Println("Search places result:\n", string(bytes))
+	}
 	return res, nil
 }
 

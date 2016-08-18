@@ -21,6 +21,7 @@ const (
 type HereApiConfig struct {
 	AppID    string
 	AppToken string
+	Debug    bool
 }
 
 func (c *HereApiConfig) ShortURL(url string) (*HereShortURLResponse, error) {
