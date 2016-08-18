@@ -2,13 +2,12 @@ package common
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
-
-	"encoding/json"
-	"log"
 
 	"github.com/artemnikitin/here-tele-bot/hlp"
 )
