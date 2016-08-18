@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// RunTelegram run bot for Telegram
 func RunTelegram(config *Config) {
 	api := telegram.New(config.TelegramBotKey)
 	api.Debug(config.Debug)
@@ -71,8 +72,8 @@ func RunTelegram(config *Config) {
 
 func processInlineQuery(tm *TelegramMessenger, update telegram.Update) {
 	query := update.InlineQuery
-	if strings.Contains(query.Query, " in ") {
-		q, loc := common.SplitQueryAndLocation(query.Query)
+	if w, ok := common.IsQueryCorrect(query.Query); ok {
+		q, loc := common.SplitQueryAndLocation(query.Query, w)
 		places, err := common.GetPlacesWithGeocoding(tm.HereAPI, q, loc)
 		if err != nil {
 			tm.SendError(update.From().ID)
@@ -102,8 +103,8 @@ func processNormalQuery(c *cache.Cache, tm *TelegramMessenger, update telegram.U
 		tm.SendLocationAccepted(update.Chat().ID)
 		return
 	}
-	if strings.Contains(update.Message.Text, " in ") {
-		q, loc := common.SplitQueryAndLocation(update.Message.Text)
+	if w, ok := common.IsQueryCorrect(update.Message.Text); ok {
+		q, loc := common.SplitQueryAndLocation(update.Message.Text, w)
 		places, err := common.GetPlacesWithGeocoding(tm.HereAPI, q, loc)
 		if err != nil {
 			tm.SendError(update.Chat().ID)

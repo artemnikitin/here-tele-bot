@@ -11,7 +11,7 @@ import (
 )
 
 //TODO: Use cache ?
-// RunSlack runs bot
+// RunSlack runs bot for Slack
 func RunSlack(config *Config) {
 	slackID := ""
 	api := slack.New(config.SlackToken)
@@ -54,9 +54,9 @@ func RunSlack(config *Config) {
 				}
 				if ID != slackID {
 					if strings.Contains(text, "<!here|@here>.:") || strings.Contains(text, "<!here>.:") {
-						if strings.Contains(text, " in ") {
+						if w, ok := common.IsQueryCorrect(text); ok {
 							text = common.ClearSlackMessage(text)
-							q, loc := common.SplitQueryAndLocation(text)
+							q, loc := common.SplitQueryAndLocation(text, w)
 							places, err := common.GetPlacesWithGeocoding(sm.HereAPI, q, loc)
 							if err != nil {
 								sm.SendError(data.Channel)

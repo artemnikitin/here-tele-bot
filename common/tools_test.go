@@ -10,17 +10,41 @@ func TestLocationToString(t *testing.T) {
 	}
 }
 
-func TestSplitQueryAndLocation(t *testing.T) {
-	cases := []struct{ in, q, l string }{
-		{"aa in bb", "aa", "bb"},
-		{"", "", ""},
-		{"ededwdwe", "", ""},
-		{"ededwdwe in ", "ededwdwe", ""},
-		{" in c", "", "c"},
+func TestIsQueryCorrect(t *testing.T) {
+	cases := []struct {
+		src, word string
+		res       bool
+	}{
+		{"qwe", "", false},
+		{"eee near bridge", " near ", true},
+		{"eeenear bridge", "", false},
+		{"near x place", "", false},
+		{"x near", "", false},
+		{"", "", false},
 	}
 
 	for _, v := range cases {
-		q, l := SplitQueryAndLocation(v.in)
+		word, result := IsQueryCorrect(v.src)
+		if result != v.res {
+			t.Errorf("For string: %s actual: %v, expected: %v", v.src, result, v.res)
+		}
+		if word != v.word {
+			t.Errorf("Actual: %v, expected: %v", word, v.word)
+		}
+	}
+}
+
+func TestSplitQueryAndLocation(t *testing.T) {
+	cases := []struct{ in, s, q, l string }{
+		{"aa in bb", " in ", "aa", "bb"},
+		{"", "", "", ""},
+		{"ededwdwe", "", "", ""},
+		{"ededwdwe in ", " in ", "ededwdwe", ""},
+		{" in c", " in ", "", "c"},
+	}
+
+	for _, v := range cases {
+		q, l := SplitQueryAndLocation(v.in, v.s)
 		if q != v.q {
 			t.Errorf("Incorrect parsing query, actual: %s, expected: %s", q, v.q)
 		}

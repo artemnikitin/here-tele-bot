@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var words = []string{" in ", " near ", " nearby ", " near to ", " around ", " close ", " close to ", " next to "}
+
 func LocationToString(lat, lon float64) string {
 	var buf bytes.Buffer
 	buf.WriteString(strconv.FormatFloat(lat, 'f', -1, 64))
@@ -14,12 +16,28 @@ func LocationToString(lat, lon float64) string {
 	return buf.String()
 }
 
-func SplitQueryAndLocation(in string) (string, string) {
-	pos := strings.Index(in, " in ")
+func IsQueryCorrect(query string) (string, bool) {
+	var result bool
+	var word string
+	for _, v := range words {
+		if strings.Contains(query, v) {
+			word = v
+			result = true
+			break
+		}
+	}
+	return word, result
+}
+
+func SplitQueryAndLocation(text, spl string) (string, string) {
+	if spl == "" {
+		return "", ""
+	}
+	pos := strings.Index(text, spl)
 	if pos == -1 {
 		return "", ""
 	}
-	return in[:pos], in[pos+4:]
+	return text[:pos], text[pos+len(spl):]
 }
 
 func StringStartWith(original, substring string) bool {
