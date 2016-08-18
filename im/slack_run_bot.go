@@ -53,7 +53,9 @@ func RunSlack(config *Config) {
 					text = data.SubMessage.Text
 				}
 				if ID != slackID {
-					if strings.Contains(text, "<!here|@here>.:") || strings.Contains(text, "<!here>.:") {
+					if strings.Contains(text, "<!here|@here>.:") ||
+						strings.Contains(text, "<!here>.:") ||
+						strings.Contains(text, "<!here|@here>.") {
 						if w, ok := common.IsQueryCorrect(text); ok {
 							text = common.ClearSlackMessage(text)
 							q, loc := common.SplitQueryAndLocation(text, w)
