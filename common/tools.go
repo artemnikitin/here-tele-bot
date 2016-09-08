@@ -40,17 +40,9 @@ func SplitQueryAndLocation(text, spl string) (string, string) {
 	return text[:pos], text[pos+len(spl):]
 }
 
-func StringStartWith(original, substring string) bool {
-	if len(substring) > len(original) {
-		return false
-	}
-	str := string(original[0:len(substring)])
-	return str == substring
-}
-
 func ClearSlackMessage(text string) string {
 	str := "<!here|@here>.:"
-	if !StringStartWith(text, str) {
+	if !strings.HasPrefix(text, str) {
 		return text
 	}
 	index := strings.Index(text, str)

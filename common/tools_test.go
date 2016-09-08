@@ -54,28 +54,6 @@ func TestSplitQueryAndLocation(t *testing.T) {
 	}
 }
 
-func TestStartWith(t *testing.T) {
-	cases := []struct {
-		src, sub string
-		res      bool
-	}{
-		{"qwe", "q", true},
-		{"qwe", "qw", true},
-		{"qwe", "qwer", false},
-		{"abc", "w", false},
-		{"", "d/", false},
-		{"dfd/", "", true},
-		{"", "", true},
-	}
-
-	for _, v := range cases {
-		result := StringStartWith(v.src, v.sub)
-		if result != v.res {
-			t.Errorf("For string: %s start with: %s, actual: %v, expected: %v", v.src, v.sub, result, v.res)
-		}
-	}
-}
-
 func TestClearSlackMessage(t *testing.T) {
 	cases := []struct {
 		src, res string
