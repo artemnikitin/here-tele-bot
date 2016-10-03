@@ -1,7 +1,6 @@
 package im
 
 import (
-	"log"
 	"strings"
 
 	"github.com/artemnikitin/here-tele-bot/common"
@@ -26,12 +25,6 @@ func RunTelegram(config *Config) {
 		Debug: config.Debug,
 	}
 	defer cancel()
-
-	if user, err := api.GetMe(ctx); err != nil {
-		log.Panic(err)
-	} else {
-		log.Println("Bot started:", user)
-	}
 
 	updatesCh := make(chan telegram.Update)
 
