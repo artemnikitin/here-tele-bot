@@ -4,7 +4,7 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-// Config
+// Config store configuration parameters for bot
 type Config struct {
 	TelegramBotKey string
 	SlackToken     string
